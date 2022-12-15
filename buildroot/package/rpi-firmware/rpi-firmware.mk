@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-RPI_FIRMWARE_VERSION = cfdbadea5f74c16b7ed5d3b4866092a054e3c3bf
+RPI_FIRMWARE_VERSION = 0d6514f32722e4acf091ab2af9715793ffd6b727
 RPI_FIRMWARE_SITE = $(call github,raspberrypi,firmware,$(RPI_FIRMWARE_VERSION))
 RPI_FIRMWARE_LICENSE = BSD-3c
 RPI_FIRMWARE_LICENSE_FILES = boot/LICENCE.broadcom
@@ -15,16 +15,9 @@ RPI_FIRMWARE_DEPENDENCIES += host-rpi-firmware
 
 ifeq ($(BR2_PACKAGE_RPI_FIRMWARE_INSTALL_DTBS),y)
 define RPI_FIRMWARE_INSTALL_DTB
-	$(INSTALL) -D -m 0644 $(@D)/boot/bcm2708-rpi-0-w.dtb $(BINARIES_DIR)/rpi-firmware/bcm2708-rpi-0-w.dtb
-	$(INSTALL) -D -m 0644 $(@D)/boot/bcm2708-rpi-b.dtb $(BINARIES_DIR)/rpi-firmware/bcm2708-rpi-b.dtb
-	$(INSTALL) -D -m 0644 $(@D)/boot/bcm2708-rpi-b-plus.dtb $(BINARIES_DIR)/rpi-firmware/bcm2708-rpi-b-plus.dtb
-	$(INSTALL) -D -m 0644 $(@D)/boot/bcm2708-rpi-cm.dtb $(BINARIES_DIR)/rpi-firmware/bcm2708-rpi-cm.dtb
-	$(INSTALL) -D -m 0644 $(@D)/boot/bcm2709-rpi-2-b.dtb $(BINARIES_DIR)/rpi-firmware/bcm2709-rpi-2-b.dtb
-	$(INSTALL) -D -m 0644 $(@D)/boot/bcm2710-rpi-3-b.dtb $(BINARIES_DIR)/rpi-firmware/bcm2710-rpi-3-b.dtb
-	$(INSTALL) -D -m 0644 $(@D)/boot/bcm2710-rpi-3-b-plus.dtb $(BINARIES_DIR)/rpi-firmware/bcm2710-rpi-3-b-plus.dtb
-	$(INSTALL) -D -m 0644 $(@D)/boot/bcm2710-rpi-cm3.dtb $(BINARIES_DIR)/rpi-firmware/bcm2710-rpi-cm3.dtb
-	$(INSTALL) -D -m 0644 $(@D)/boot/bcm2711-rpi-4-b.dtb $(BINARIES_DIR)/rpi-firmware/bcm2711-rpi-4-b.dtb
-	$(INSTALL) -D -m 0644 $(@D)/boot/bcm2711-rpi-cm4.dtb $(BINARIES_DIR)/rpi-firmware/bcm2711-rpi-cm4.dtb
+	for dtb in $(@D)/boot/*.dtb; do \
+		$(INSTALL) -D -m 0644 $(@D)/boot/$${dtb} $(BINARIES_DIR)/rpi-firmware/$${dtb}
+	done
 endef
 endif
 

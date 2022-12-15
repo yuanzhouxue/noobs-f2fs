@@ -43,90 +43,36 @@ echo 2 >/sys/module/vt/parameters/cur_default
 # Enable syslog
 /etc/init.d/S01logging start > /dev/null
 
-present=$(tvservice -l | sed -n -e 's|^Display Number \(.*\),.*$|\1| p')
-for dev in $present; do
-    fitted=$(tvservice -n -v "$dev" 2>/dev/null)
-    if [[ "$fitted" != "" ]]; then
-        case "$dev" in
-            0)  #7in Touchscreen
-                export QWS_DISPLAY="LinuxFb:/dev/fb0"
-                break;
-                ;;
-            2)  #normal HDMI0
-                export QWS_DISPLAY="LinuxFb:/dev/fb0"
-                break;
-                ;;
-            7)  #Secondary HDMI1
-                export QWS_DISPLAY="LinuxFb:/dev/fb1"
-                /bin/con2fbmap 2 1
-                /bin/con2fbmap 3 1
-                break;
-                ;;
-        esac
-    fi
-done
 
-if grep -q vncinstall /proc/cmdline; then
-    # VNC server mode. Mainly useful for making screenshots
-    export QWS_DISPLAY="VNC:size=800x600:depth=32:0"
-    ifup eth0
-fi
-
-# Mouse acceleration
-#export QWS_MOUSE_PROTO=:accel=1
-
-# Pi touch screen
-if [ -d /proc/device-tree/soc/firmware/touchscreen ]; then
-    export QWS_MOUSE_PROTO="linuxinput:/dev/input/event0:grab=1 intellimouse:/dev/input/mice"
-fi
-
-SAFE_MODE=`vcgencmd get_config safe_mode_gpio`
-
-if ( [ ${SAFE_MODE#*=} -eq 1 ] && ! grep -q disablesafemode /proc/cmdline ) || grep -q rescueshell /proc/cmdline; then
-    sh
-else
-    RUN_INSTALLER=
-    GPIO_TRIGGER=
-    KEYBOARD_NO_TRIGGER=
-    FORCE_TRIGGER=
-    DEFAULT_LANG=
-    DEFAULT_KBD=
-    DEFAULT_DISPLAY=
-    DEFAULT_PARTITION=
-
-    if grep -q runinstaller /proc/cmdline; then
-        RUN_INSTALLER=-runinstaller
-    fi
-    if grep -q gpiotriggerenable /proc/cmdline; then
-        GPIO_TRIGGER=-gpiotriggerenable
-    fi
-    if grep -q keyboardtriggerdisable /proc/cmdline; then
-        KEYBOARD_NO_TRIGGER=-keyboardtriggerdisable
-    fi
-    if grep -q forcetrigger /proc/cmdline; then
-        FORCE_TRIGGER=-forcetrigger
-    fi
-    for p in `cat /proc/cmdline` ; do
-        if [ "${p%%=*}" == "lang" ] ; then
-            DEFAULT_LANG="-lang ${p#*=}";
-        fi
-        if [ "${p%%=*}" == "keyboard" ] ; then
-            DEFAULT_KBD="-kbdlayout ${p#*=}";
-        fi
-        if [ "${p%%=*}" == "display" ] ; then
-            DEFAULT_DISPLAY="-dispmode ${p#*=}"
-        fi
-        if [ "${p%%=*}" == "partition" ] ; then
-            DEFAULT_PARTITION="-partition ${p#*=}"
-        fi
-    done
-
-    /usr/bin/recovery $RUN_INSTALLER $GPIO_TRIGGER $KEYBOARD_NO_TRIGGER $FORCE_TRIGGER $DEFAULT_KBD $DEFAULT_LANG $DEFAULT_DISPLAY $DEFAULT_PARTITION -qws 2>/tmp/debug
-
-fi
 
 # Recovery should have rebooted
+echo Starting resize rootfs...
 
-echo Recovery application crashed
-echo Starting shell
+cat << EOF | fdisk /dev/mmcblk0
+d
+2
+n
+p
+2
+$(cat /sys/block/mmcblk0/mmcblk0p2/start)
+
+w
+EOF
+resize.f2fs /dev/mmcblk0p2
+echo Resize Done.
+
+echo Transfering files.
+mount /dev/mmcblk0p1 /boot
+mount /dev/mmcblk0p2 /rootfs
+
+rm -rf /boot/*
+mv /rootfs/boot/* boot/
+sync
+umount /rootfs
+umount /boot
+
+echo Rebooting.
+/usr/bin/recovery -reboot
+echo Reboot failed.
+
 sh

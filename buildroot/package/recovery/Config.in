@@ -2,15 +2,6 @@ config BR2_PACKAGE_RECOVERY
         bool "recovery"
     ### build dependencies
     select BR2_PACKAGE_QT
-    select BR2_PACKAGE_QT_QTPNG
-    select BR2_PACKAGE_QT_GFX_LINUXFB
-    select BR2_PACKAGE_QT_GFX_VNC
-    select BR2_PACKAGE_QT_QTFREETYPE
-    select BR2_PACKAGE_QT_SYSTEMZLIB
-    select BR2_PACKAGE_QT_MOUSE_PC
-    select BR2_PACKAGE_QT_KEYBOARD_TTY
-    select BR2_PACKAGE_QJSON
-    select BR2_PACKAGE_WPA_SUPPLICANT
     ### runtime dependencies
     # commands called from the init script: mount, hostname, echo, getty, grep, ifup, vcgencmd, sh, cat, recovery
     # commands called from recovery application using QProcess:
@@ -27,13 +18,10 @@ config BR2_PACKAGE_RECOVERY
     select BR2_PACKAGE_RPI_USERLAND # vcgencmd, tvservice
     select BR2_PACKAGE_E2FSPROGS
     select BR2_PACKAGE_E2FSPROGS_MKE2FS # mkfs.ext4
-    select BR2_PACKAGE_ARORA # arora
     select BR2_PACKAGE_PARTED # parted, partprobe
     select BR2_PACKAGE_UTIL_LINUX # sfdisk, findfs, blkid
     select BR2_PACKAGE_MTOOLS # mlabel
     select BR2_PACKAGE_DOSFSTOOLS
     select BR2_PACKAGE_DOSFSTOOLS_MKFS_FAT # mkfs.fat
-    select BR2_PACKAGE_WGET # wget
-        help
-          recovery GUI 
+    select BR2_PACKAGE_F2FS_TOOLS
 
